@@ -1,0 +1,55 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Data directories
+data/
+*.m4a
+*.mp3
+*.wav
+*.vtt
+*.srt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Local development settings
+.env
+.env.local
+.env.*.local
+
+wavtokenizer_large_speech_320_24k.ckpt
+*.wav
+*.mp4
+*.avi
+*.mkv
+
+wavtokenizer_mediumdata_frame75_3s_nq1_code4096_dim512_kmeans200_attn.yaml
