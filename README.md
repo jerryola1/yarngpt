@@ -2,6 +2,14 @@
 ![image/png](https://github.com/saheedniyi02/yarngpt/blob/main/notebooks/audio_0c026c21-f432-4d20-a86b-899a10d9ed60.webp)
 A text-to-speech model generating natural Nigerian-accented English speech. Built on pure language modeling without external adapters.
 
+This repository is a fork of the YarnGPT project, focusing on Ilesa dialect contributions and enhancements.
+
+## Project Structure
+
+- `download_video.py`: Script for downloading YouTube videos with subtitles
+- `data/`: Directory containing downloaded audio and transcription files
+- `notebooks/`: Jupyter notebooks for training and analysis
+
 ## Quick Start
 
 ```python
