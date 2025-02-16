@@ -1,0 +1,44 @@
+name: Build and Deploy yarnGPT
+
+on:
+  push:
+    branches: [ feature/yarngpt-ui ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: UI/frontend/package-lock.json
+
+    - name: Install Dependencies
+      run: |
+        cd UI/frontend
+        npm install
+
+    - name: Build Next.js App
+      run: |
+        cd UI/frontend
+        npm run build
+      env:
+        CI: false
+
+    - name: FTP Deploy
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: UI/frontend/out/
+        server-dir: /public_html/
+        exclude: |
+          **/.git*
+          **/.git*/** 
