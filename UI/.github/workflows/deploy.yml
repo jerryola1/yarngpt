@@ -2,7 +2,7 @@ name: Build and Deploy yarnGPT
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feature/yarngpt-ui ]
 
 jobs:
   build-and-deploy:
@@ -17,24 +17,16 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-
-    - name: Install Watchman
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y watchman
+        cache-dependency-path: UI/frontend/package-lock.json
 
     - name: Install Dependencies
-      run: npm install
-
-    - name: Clear Metro Cache
       run: |
-        rm -rf node_modules/.cache
-        mkdir -p node_modules/react-native-css-interop/.cache
-        touch node_modules/react-native-css-interop/.cache/web.css
+        cd UI/frontend
+        npm install
 
-    - name: Build Web
+    - name: Build Next.js App
       run: |
-        export WATCHMAN_SOCKFILE=/tmp/watchman.sock
+        cd UI/frontend
         npm run build
       env:
         CI: false
@@ -45,9 +37,8 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: dist/public/
+        local-dir: UI/frontend/out/
         server-dir: /public_html/
         exclude: |
           **/.git*
-          **/.git*/**
-          **/node_modules/** 
+          **/.git*/** 

@@ -13,6 +13,8 @@ import { Mic, Paperclip } from "lucide-react"
 import Hero from "../components/Hero"
 import LoadingSpinner from "@/components/LoadingSpinner"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function Home() {
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -35,7 +37,7 @@ export default function Home() {
     setAudioUrl(null)
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/generate-speech', {
+      const response = await fetch(`${API_URL}/api/v1/generate-speech`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
