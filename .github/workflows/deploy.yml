@@ -22,7 +22,7 @@ jobs:
     - name: Install Dependencies
       run: |
         cd UI/frontend
-        npm install
+        npm install --legacy-peer-deps
 
     - name: Build Next.js App
       run: |
