@@ -1,0 +1,53 @@
+name: Build and Deploy yarnGPT
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Watchman
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y watchman
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Clear Metro Cache
+      run: |
+        rm -rf node_modules/.cache
+        mkdir -p node_modules/react-native-css-interop/.cache
+        touch node_modules/react-native-css-interop/.cache/web.css
+
+    - name: Build Web
+      run: |
+        export WATCHMAN_SOCKFILE=/tmp/watchman.sock
+        npm run build
+      env:
+        CI: false
+
+    - name: FTP Deploy
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: dist/public/
+        server-dir: /public_html/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/** 
