@@ -13,7 +13,7 @@ import LoadingSpinner from "@/components/LoadingSpinner"
 
 // This will use the production URL in production and localhost in development
 // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt-api.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt-ui.onrender.com';
 console.log('API URL:', API_URL); // Debug log
 
 export default function Home() {

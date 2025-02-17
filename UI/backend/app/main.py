@@ -10,6 +10,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://yarn.correct.ng",
+        "https://yarngpt-ui.onrender.com",
         "http://localhost:3000",
         "http://localhost:8000",
     ],
