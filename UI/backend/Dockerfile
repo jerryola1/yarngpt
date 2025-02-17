@@ -12,9 +12,6 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Pre-download models to cache layer
-RUN python -c "from yarngpt import load_model; load_model()"
-
 # Copy application code
 COPY . .
 

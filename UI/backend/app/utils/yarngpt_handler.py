@@ -4,7 +4,7 @@ import cloudinary
 import cloudinary.uploader
 import tempfile
 from dotenv import load_dotenv
-from yarngpt import generate_speech, load_model
+from yarngpt import generate_speech
 import torch
 import gc
 
@@ -14,7 +14,6 @@ class YarnGPTHandler:
     _instance = None
     _is_initialized = False
     _device = None
-    _model = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -31,8 +30,6 @@ class YarnGPTHandler:
             )
             # Set device to CPU to ensure consistent behavior
             YarnGPTHandler._device = torch.device("cpu")
-            # Load model once and cache it
-            YarnGPTHandler._model = load_model()
             YarnGPTHandler._is_initialized = True
 
     async def generate_speech(self, text: str, speaker: str = "idera",
@@ -42,14 +39,13 @@ class YarnGPTHandler:
         try:
             # Ensure we're using CPU for generation
             with torch.no_grad():
-                # Generate audio using yarngpt with cached model
+                # Generate audio using yarngpt
                 audio = generate_speech(
                     text,
                     speaker=speaker,
                     temperature=temperature,
                     repetition_penalty=repetition_penalty,
-                    max_length=max_length,
-                    model=YarnGPTHandler._model  # Use cached model
+                    max_length=max_length
                 )
             
             # Save temporarily and upload to Cloudinary

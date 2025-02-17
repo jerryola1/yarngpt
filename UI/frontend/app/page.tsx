@@ -13,6 +13,7 @@ import LoadingSpinner from "@/components/LoadingSpinner"
 
 // This will use the production URL in production and localhost in development
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+console.log('API URL:', API_URL); // Debug log
 
 export default function Home() {
   const router = useRouter()
@@ -36,7 +37,6 @@ export default function Home() {
     setAudioUrl(null)
 
     try {
-      // Use the API_URL constant instead of hardcoded localhost
       const response = await fetch(`${API_URL}/api/v1/generate-speech`, {
         method: 'POST',
         headers: {
