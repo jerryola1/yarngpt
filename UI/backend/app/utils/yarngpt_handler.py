@@ -4,8 +4,9 @@ import cloudinary
 import cloudinary.uploader
 import tempfile
 from dotenv import load_dotenv
-from yarngpt import generate_speech
+from yarngpt import generate_speech, load_model
 import torch
+import gc
 
 load_dotenv()
 
@@ -13,6 +14,7 @@ class YarnGPTHandler:
     _instance = None
     _is_initialized = False
     _device = None
+    _model = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -29,6 +31,8 @@ class YarnGPTHandler:
             )
             # Set device to CPU to ensure consistent behavior
             YarnGPTHandler._device = torch.device("cpu")
+            # Load model once and cache it
+            YarnGPTHandler._model = load_model()
             YarnGPTHandler._is_initialized = True
 
     async def generate_speech(self, text: str, speaker: str = "idera",
@@ -38,13 +42,14 @@ class YarnGPTHandler:
         try:
             # Ensure we're using CPU for generation
             with torch.no_grad():
-                # Generate audio using yarngpt
+                # Generate audio using yarngpt with cached model
                 audio = generate_speech(
                     text,
                     speaker=speaker,
                     temperature=temperature,
                     repetition_penalty=repetition_penalty,
-                    max_length=max_length
+                    max_length=max_length,
+                    model=YarnGPTHandler._model  # Use cached model
                 )
             
             # Save temporarily and upload to Cloudinary
@@ -61,7 +66,14 @@ class YarnGPTHandler:
                 # Clean up temp file
                 os.unlink(temp_file.name)
                 
+                # Force garbage collection
+                gc.collect()
+                torch.cuda.empty_cache() if torch.cuda.is_available() else None
+                
                 return upload_result["secure_url"]
                 
         except Exception as e:
+            # Clean up memory even on error
+            gc.collect()
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
             raise Exception(f"Speech generation failed: {str(e)}") 

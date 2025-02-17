@@ -4,19 +4,22 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    wget \
+    portaudio19-dev \
+    python3-pyaudio \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Install yarngpt from GitHub
-RUN pip install git+https://github.com/saheedniyi02/yarngpt.git
+# Pre-download models to cache layer
+RUN python -c "from yarngpt import load_model; load_model()"
 
-# Copy the rest of the application
+# Copy application code
 COPY . .
 
-# Command to run the application
+# Set environment variables
+ENV PORT=10000
+
+# Run the application
 CMD ["python", "run.py"] 
