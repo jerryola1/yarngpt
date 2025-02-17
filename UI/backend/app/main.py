@@ -5,18 +5,22 @@ import os
 
 app = FastAPI(title="YarnGPT API")
 
-# Configure CORS with specific origins
+origins = [
+    "https://yarn.correct.ng",
+    "https://yarngpt-ui.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:8000",
+]
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://yarn.correct.ng",
-        "https://yarngpt-ui.onrender.com",
-        "http://localhost:3000",
-        "http://localhost:8000",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Include routers
