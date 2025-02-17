@@ -5,22 +5,13 @@ import os
 
 app = FastAPI(title="YarnGPT API")
 
-origins = [
-    "https://yarn.correct.ng",
-    "https://yarngpt-ui.onrender.com",
-    "http://localhost:3000",
-    "http://localhost:8000",
-]
-
-# Configure CORS
+# Configure CORS - make it more permissive for debugging
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # More permissive for debugging
+    allow_credentials=False,  # Must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=3600,
 )
 
 # Include routers
@@ -28,4 +19,8 @@ app.include_router(tts.router, prefix="/api/v1", tags=["text-to-speech"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to YarnGPT API"} 
+    return {"message": "Welcome to YarnGPT API"}
+
+@app.get("/test-cors")
+async def test_cors():
+    return {"message": "CORS is working"} 
