@@ -5,12 +5,14 @@ import cloudinary.uploader
 import tempfile
 from dotenv import load_dotenv
 from yarngpt import generate_speech
+import torch
 
 load_dotenv()
 
 class YarnGPTHandler:
     _instance = None
     _is_initialized = False
+    _device = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -25,6 +27,8 @@ class YarnGPTHandler:
                 api_key=os.getenv("CLOUDINARY_API_KEY"),
                 api_secret=os.getenv("CLOUDINARY_API_SECRET")
             )
+            # Set device to CPU to ensure consistent behavior
+            YarnGPTHandler._device = torch.device("cpu")
             YarnGPTHandler._is_initialized = True
 
     async def generate_speech(self, text: str, speaker: str = "idera",
@@ -32,14 +36,16 @@ class YarnGPTHandler:
                             repetition_penalty: float = 1.1,
                             max_length: int = 4000) -> str:
         try:
-            # Generate audio using yarngpt
-            audio = generate_speech(
-                text,
-                speaker=speaker,
-                temperature=temperature,
-                repetition_penalty=repetition_penalty,
-                max_length=max_length
-            )
+            # Ensure we're using CPU for generation
+            with torch.no_grad():
+                # Generate audio using yarngpt
+                audio = generate_speech(
+                    text,
+                    speaker=speaker,
+                    temperature=temperature,
+                    repetition_penalty=repetition_penalty,
+                    max_length=max_length
+                )
             
             # Save temporarily and upload to Cloudinary
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
