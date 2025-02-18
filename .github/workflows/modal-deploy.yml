@@ -2,9 +2,11 @@ name: Deploy Modal Backend
 
 on:
   push:
-    branches: [ main, feature/yarngpt-ui ]
+    branches: 
+      - feature/yarngpt-ui
     paths:
       - 'UI/backend/**'
+      - '.github/workflows/modal-deploy.yml'
 
 jobs:
   deploy:
