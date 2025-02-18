@@ -30,6 +30,7 @@ jobs:
         npm run build
       env:
         CI: false
+        NEXT_PUBLIC_API_URL: https://yarngpt-api.onrender.com
 
     - name: FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
