@@ -1,6 +1,5 @@
 import modal
 import os
-import torchaudio
 import cloudinary
 import cloudinary.uploader
 import tempfile
@@ -61,6 +60,8 @@ class TTSModel:
                     repetition_penalty=repetition_penalty,
                     max_length=max_length
                 )
+            # Import torchaudio lazily inside the function
+            import torchaudio
             # Save and upload
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
                 torchaudio.save(temp_file.name, audio, sample_rate=24000)
