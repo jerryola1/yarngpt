@@ -11,9 +11,8 @@ import { Mic, Paperclip } from "lucide-react"
 import Hero from "../components/Hero"
 import LoadingSpinner from "@/components/LoadingSpinner"
 
-// This will use the production URL in production and localhost in development
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt-ui.onrender.com';
+// Use environment variable for API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt-tts--generate-speech-endpoint.modal.run';
 console.log('API URL:', API_URL); // Debug log
 
 export default function Home() {
@@ -52,15 +51,16 @@ export default function Home() {
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to generate speech')
+        throw new Error(data.error || 'Failed to generate speech')
       }
 
-      const data = await response.json()
       setAudioUrl(data.audio_url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'An error occurred while generating speech')
+      console.error('Speech generation error:', err)
     } finally {
       setIsProcessing(false)
     }

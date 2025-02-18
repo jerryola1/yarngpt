@@ -5,13 +5,21 @@ import os
 
 app = FastAPI(title="YarnGPT API")
 
-# Configure CORS - make it more permissive for debugging
+origins = [
+    "https://yarn.correct.ng",
+    "http://localhost:3000",
+    "http://localhost:8000",
+]
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # More permissive for debugging
-    allow_credentials=False,  # Must be False when allow_origins=["*"]
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Include routers
