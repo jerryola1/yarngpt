@@ -23,19 +23,23 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install modal-client
+          pip install modal-client yarngpt cloudinary torchaudio
           
       - name: Configure Modal token
         run: |
-          echo "[default]" > ~/.modal.toml
-          echo "token_id = \"$MODAL_TOKEN_ID\"" >> ~/.modal.toml
-          echo "token_secret = \"$MODAL_TOKEN_SECRET\"" >> ~/.modal.toml
+          mkdir -p ~/.modal
+          echo "[default]" > ~/.modal/config.toml
+          echo "token_id = \"$MODAL_TOKEN_ID\"" >> ~/.modal/config.toml
+          echo "token_secret = \"$MODAL_TOKEN_SECRET\"" >> ~/.modal/config.toml
+        
+      - name: Create Modal secrets
+        run: |
+          modal secret create yarngpt-CLOUDINARY-secret \
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} \
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
         
       - name: Deploy to Modal
         run: |
           cd UI/backend
-          modal deploy modal_app.py
-        env:
-          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }} 
+          modal deploy modal_app.py 
