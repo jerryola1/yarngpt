@@ -8,6 +8,8 @@ import torch
 import gc
 from typing import Dict, Any, Tuple
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 
 app = modal.App("yarngpt-tts")
 
@@ -18,7 +20,7 @@ volume = modal.Volume.from_name("yarngpt-cache", create_if_missing=True)
 # Configure the image with our dependencies
 image = (
     modal.Image.debian_slim()
-    .pip_install("yarngpt", "cloudinary", "torchaudio")
+    .pip_install("yarngpt", "cloudinary", "torchaudio", "fastapi")
     .env({"HF_HOME": cache_dir})
 )
 
@@ -100,6 +102,18 @@ class TTSModel:
 
 @modal.web_endpoint(method="POST")
 async def generate(request: TTSRequest) -> Dict[str, Any]:
+    # Create FastAPI app
+    fastapi_app = FastAPI()
+    
+    # Configure CORS
+    fastapi_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["https://yarn.correct.ng", "http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
     model = TTSModel()
     return await model.generate(request)
 
