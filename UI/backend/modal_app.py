@@ -8,8 +8,8 @@ import torch
 import gc
 from typing import Dict, Any, Tuple
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = modal.App("yarngpt-tts")
 
@@ -47,13 +47,11 @@ class TTSModel:
         max_length: int = 4000
     ) -> Tuple[bool, str]:
         try:
-            # Initialize Cloudinary
             cloudinary.config(
                 cloud_name=os.environ["CLOUDINARY_CLOUD_NAME"],
                 api_key=os.environ["CLOUDINARY_API_KEY"],
                 api_secret=os.environ["CLOUDINARY_API_SECRET"]
             )
-            # Generate speech
             with torch.no_grad():
                 audio = generate_speech(
                     text,
@@ -62,9 +60,7 @@ class TTSModel:
                     repetition_penalty=repetition_penalty,
                     max_length=max_length
                 )
-            # Import torchaudio lazily inside the function
-            import torchaudio
-            # Save and upload
+            import torchaudio  # lazy import
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
                 torchaudio.save(temp_file.name, audio, sample_rate=24000)
                 upload_result = cloudinary.uploader.upload(
@@ -100,22 +96,24 @@ class TTSModel:
             print(f"Endpoint error: {str(e)}")
             return {"error": f"Speech generation failed: {str(e)}"}
 
-@modal.web_endpoint(method="POST")
-async def generate(request: TTSRequest) -> Dict[str, Any]:
-    # Create FastAPI app
-    fastapi_app = FastAPI()
-    
-    # Configure CORS
-    fastapi_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["https://yarn.correct.ng", "http://localhost:3000"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    
+# Create and configure FastAPI instance with CORS
+api_app = FastAPI()
+api_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://yarn.correct.ng", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@api_app.post("/api/v1/generate-speech")
+async def generate_speech_endpoint(request: TTSRequest):
     model = TTSModel()
     return await model.generate(request)
+
+@modal.web_endpoint()
+def modal_generate_speech():
+    return api_app
 
 @app.local_entrypoint()
 def main():
