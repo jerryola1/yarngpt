@@ -2,3 +2,6 @@ modal
 yarngpt
 cloudinary
 torchaudio
+python-dotenv
+fastapi
+pydantic
