@@ -12,7 +12,7 @@ import Hero from "../components/Hero"
 import LoadingSpinner from "@/components/LoadingSpinner"
 
 // Use environment variable for API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt-tts--generate-speech-endpoint.modal.run';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt--generate.modal.run';
 console.log('API URL:', API_URL); // Debug log
 
 export default function Home() {
@@ -41,6 +41,7 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           text: formData.text,
@@ -214,4 +215,3 @@ export default function Home() {
     </div>
   )
 }
-

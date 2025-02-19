@@ -106,7 +106,12 @@ api_app.add_middleware(
     allow_headers=["*"],
 )
 
-@api_app.post("/api/v1/generate-speech")
+@app.web_endpoint(method="POST", cors=modal.CORS(
+    origins=["https://yarn.correct.ng", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["POST", "OPTIONS"],
+    allow_headers=["*"],
+))
 async def generate_speech_endpoint(request: TTSRequest):
     model = TTSModel()
     return await model.generate(request)
