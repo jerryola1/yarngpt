@@ -5,7 +5,7 @@ from app.main import app as fastapi_app
 image = (
     modal.Image.debian_slim()
     .pip_install(
-        "fastapi", "uvicorn", "yarngpt", "cloudinary", "torchaudio", "python-dotenv", "pydantic"
+        "fastapi", "uvicorn", "yarngpt>=0.2.0", "cloudinary", "torchaudio", "python-dotenv", "pydantic"
     )
     .env({"HF_HOME": "/cache"})
     .add_local_python_source("_remote_module_non_scriptable", "app")

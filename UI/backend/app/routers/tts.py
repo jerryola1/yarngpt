@@ -12,6 +12,7 @@ class TTSRequest(BaseModel):
     temperature: float = 0.1
     repetition_penalty: float = 1.1
     max_length: int = 4000
+    language: str = "english"
 
 @router.post("/generate-speech")
 async def generate_speech(request: TTSRequest):
@@ -21,7 +22,8 @@ async def generate_speech(request: TTSRequest):
             speaker=request.speaker,
             temperature=request.temperature,
             repetition_penalty=request.repetition_penalty,
-            max_length=request.max_length
+            max_length=request.max_length,
+            language=request.language
         )
         
         return {"audio_url": audio_url}

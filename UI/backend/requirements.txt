@@ -1,5 +1,5 @@
 modal
-yarngpt
+yarngpt==0.2.0
 cloudinary
 torchaudio
 python-dotenv

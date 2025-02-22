@@ -35,7 +35,8 @@ class YarnGPTHandler:
     async def generate_speech(self, text: str, speaker: str = "idera",
                             temperature: float = 0.1,
                             repetition_penalty: float = 1.1,
-                            max_length: int = 4000) -> str:
+                            max_length: int = 4000,
+                            language: str = "english") -> str:
         try:
             # Ensure we're using CPU for generation
             with torch.no_grad():
@@ -45,7 +46,8 @@ class YarnGPTHandler:
                     speaker=speaker,
                     temperature=temperature,
                     repetition_penalty=repetition_penalty,
-                    max_length=max_length
+                    max_length=max_length,
+                    language=language
                 )
             
             # Save temporarily and upload to Cloudinary
