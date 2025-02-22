@@ -17,7 +17,7 @@ volume = modal.Volume.from_name("yarngpt-cache", create_if_missing=True)
 # Initialize the Modal App
 app = modal.App("yarn-gpt-api")
 
-@app.function(image=image, gpu="L40S", secrets=[modal.Secret.from_name("yarngpt-CLOUDINARY-secret")], volumes={"/cache": volume})
+@app.function(image=image, gpu="A100", secrets=[modal.Secret.from_name("yarngpt-CLOUDINARY-secret")], volumes={"/cache": volume})
 @modal.asgi_app()
 def fastapi_app():
     from app.main import app as fastapi_app

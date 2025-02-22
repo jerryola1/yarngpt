@@ -23,12 +23,46 @@ export default function Home() {
   const [formData, setFormData] = useState({
     text: "",
     speaker: "idera",
+    language: "english",
     temperature: 0.1,
     repetition_penalty: 1.1,
     max_length: 4000,
     fileName: "",
     speed: 1,
   })
+
+  // Add voice options by language
+  const voiceOptions = {
+    english: [
+      { value: "idera", label: "Idera (Female)" },
+      { value: "jude", label: "Jude (Male)" },
+      { value: "emma", label: "Emma (Female)" },
+      { value: "joke", label: "Joke (Female)" },
+      { value: "zainab", label: "Zainab (Female)" },
+      { value: "osagie", label: "Osagie (Male)" },
+      { value: "remi", label: "Remi (Female)" },
+      { value: "tayo", label: "Tayo (Male)" }
+    ],
+    yoruba: [
+      { value: "abayomi", label: "Abayomi (Male)" },
+      { value: "aisha", label: "Aisha (Female)" }
+    ],
+    igbo: [
+      { value: "obinna", label: "Obinna (Male)" }
+    ],
+    hausa: [
+      { value: "amina", label: "Amina (Female)" },
+      { value: "fatima", label: "Fatima (Female)" }
+    ]
+  }
+
+  const handleLanguageChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      language: value,
+      speaker: voiceOptions[value as keyof typeof voiceOptions][0].value
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +80,7 @@ export default function Home() {
         body: JSON.stringify({
           text: formData.text,
           speaker: formData.speaker,
+          language: formData.language,
           temperature: formData.temperature,
           repetition_penalty: formData.repetition_penalty,
           max_length: formData.max_length,
@@ -74,10 +109,6 @@ export default function Home() {
 
   const handleSpeedChange = (value: number[]) => {
     setFormData((prev) => ({ ...prev, speed: value[0] }))
-  }
-
-  const handleSpeakerChange = (value: string) => {
-    setFormData(prev => ({ ...prev, speaker: value }))
   }
 
   const handleDownload = async () => {
@@ -128,19 +159,33 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
+              value={formData.language}
+              onValueChange={handleLanguageChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="yoruba">Yoruba</SelectItem>
+                <SelectItem value="igbo">Igbo</SelectItem>
+                <SelectItem value="hausa">Hausa</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
               value={formData.speaker}
-              onValueChange={handleSpeakerChange}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, speaker: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a voice" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="idera">Idera (Female, Default)</SelectItem>
-                <SelectItem value="joke">Joke (Female)</SelectItem>
-                <SelectItem value="jude">Jude (Male)</SelectItem>
-                <SelectItem value="umar">Umar (Male)</SelectItem>
-                <SelectItem value="osagie">Osagie (Male)</SelectItem>
-                <SelectItem value="onye">Onye (Male)</SelectItem>
+                {voiceOptions[formData.language as keyof typeof voiceOptions].map((voice) => (
+                  <SelectItem key={voice.value} value={voice.value}>
+                    {voice.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

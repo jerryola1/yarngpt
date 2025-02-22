@@ -7,8 +7,9 @@ app = FastAPI(title="YarnGPT API")
 
 origins = [
     "https://yarn.correct.ng",
+    "https://yarngpt.co",
     "http://localhost:3000",
-    "http://localhost:8000",
+    "http://localhost:8000"
 ]
 
 # Configure CORS
