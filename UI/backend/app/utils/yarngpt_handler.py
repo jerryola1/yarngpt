@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from yarngpt import generate_speech
 import torch
 import gc
+from huggingface_hub import HfFolder
 
 load_dotenv()
 
@@ -33,14 +34,17 @@ class YarnGPTHandler:
             YarnGPTHandler._is_initialized = True
 
     async def generate_speech(self, text: str, speaker: str = "idera",
-                            temperature: float = 0.1,
-                            repetition_penalty: float = 1.1,
-                            max_length: int = 4000,
-                            language: str = "english") -> str:
+                              temperature: float = 0.1,
+                              repetition_penalty: float = 1.1,
+                              max_length: int = 4000,
+                              language: str = "english") -> str:
         try:
             # Ensure we're using CPU for generation
             with torch.no_grad():
-                # Generate audio using yarngpt
+                # Verify we have a token before generation
+                if not HfFolder.get_token():
+                    raise Exception("No Hugging Face token available for model access")
+                    
                 audio = generate_speech(
                     text,
                     speaker=speaker,
@@ -66,12 +70,13 @@ class YarnGPTHandler:
                 
                 # Force garbage collection
                 gc.collect()
-                torch.cuda.empty_cache() if torch.cuda.is_available() else None
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
                 
                 return upload_result["secure_url"]
                 
         except Exception as e:
-            # Clean up memory even on error
             gc.collect()
-            torch.cuda.empty_cache() if torch.cuda.is_available() else None
-            raise Exception(f"Speech generation failed: {str(e)}") 
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            raise Exception(f"Speech generation failed: {str(e)}")

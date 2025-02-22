@@ -45,3 +45,4 @@ yarn-error.log*
 .env.production.local 
 
 frontend_new/
+backend/test_secret.py

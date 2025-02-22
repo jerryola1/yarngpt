@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install modal cloudinary torchaudio yarngpt pydantic fastapi python-dotenv
+          pip install modal cloudinary torchaudio yarngpt>=0.2.0 pydantic fastapi python-dotenv transformers huggingface-hub sounddevice hf_transfer
           
       - name: Configure Modal token
         run: |
