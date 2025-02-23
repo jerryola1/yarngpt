@@ -32,7 +32,7 @@ export function Footer() {
                   <ExternalLink className="h-4 w-4" />
                 </a>
                 <a 
-                  href="https://github.com/jerryola1/yarngpt"
+                  href="https://github.com/saheedniyi02/yarngpt"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 

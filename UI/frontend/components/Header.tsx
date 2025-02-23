@@ -70,7 +70,7 @@ export function Header() {
           </nav>
           <div className="flex items-center space-x-2 md:space-x-3">
             <a
-              href="https://github.com/jerryola1/yarngpt"
+              href="https://github.com/saheedniyi02/yarngpt"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 text-green-700 dark:text-green-500

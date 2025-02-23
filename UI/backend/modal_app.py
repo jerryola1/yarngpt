@@ -32,7 +32,7 @@ image = (
 
 @app.function(
     image=image,
-    gpu="A100",
+    gpu="A100-80GB",
     secrets=[hf_secret, cloudinary_secret],
     volumes={
         "/cache": cache_volume,
