@@ -51,7 +51,7 @@ export default function RootLayout({
         <link rel="icon" href="/fav.png" />
         <meta 
           name="viewport" 
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" 
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" 
         />
       </head>
       <body className={poppins.className}>

@@ -75,10 +75,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt--yarn-gpt-ap
 const loadingMessages = [
   { message: "Warming up our GPU Momory...", duration: 2000 },
   { message: "Waking up the AI container...", duration: 2000 },
-  { message: "Loading Nigerian voice models...", duration: 4000 },
+  { message: "Loading Nigerian voice models...", duration: 5000 },
   { message: "Teaching the AI proper Naija pronunciation...", duration: 4000 },
-  { message: "Adding that special Nigerian flavor...", duration: 4000 },
-  { message: "Almost there! Generating your audio...", duration: 2000 },
+  { message: "Adding that special Nigerian flavor...", duration: 5000 },
+  { message: "Almost there! Generating your audio...", duration: 5000 },
 ]
 
 export default function TextToSpeechConverter() {
@@ -315,6 +315,7 @@ export default function TextToSpeechConverter() {
             value={formData.text}
             onChange={handleInputChange}
             placeholder="Enter text.."
+            style={{ fontSize: '16px' }}
             className="min-h-[120px] bg-white dark:bg-gray-900 text-green-700 dark:text-green-500 border-none focus:ring-0 rounded-lg placeholder-green-500 dark:placeholder-green-400"
           />
           <div className="absolute bottom-2 right-3">
@@ -386,6 +387,7 @@ export default function TextToSpeechConverter() {
             value={formData.fileName}
             onChange={handleInputChange}
             placeholder="Name of the resulting audio file (optional)"
+            style={{ fontSize: '16px' }}
             className="bg-white dark:bg-gray-900 text-green-700 dark:text-green-500 border-2 border-green-600 dark:border-green-600 rounded-lg
               shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
               placeholder-green-500 dark:placeholder-green-400"
