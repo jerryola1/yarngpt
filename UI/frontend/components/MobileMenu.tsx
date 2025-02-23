@@ -6,25 +6,44 @@ import Link from "next/link"
 import { Menu, X, Coffee } from "lucide-react"
 
 export function MobileMenu() {
-  // const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [showToast, setShowToast] = useState(false)
 
-  // const toggleMenu = () => setIsOpen(!isOpen)
+  const toggleMenu = () => setIsOpen(!isOpen)
 
-  // const menuVariants = {
-  //   closed: { opacity: 0, x: "100%" },
-  //   open: { opacity: 1, x: 0 }
-  // }
+  const menuVariants = {
+    closed: { opacity: 0, x: "100%" },
+    open: { opacity: 1, x: 0 }
+  }
+
+  const handleClick = () => {
+    setShowToast(true)
+    setTimeout(() => setShowToast(false), 2000)
+  }
 
   return (
-    <div className="md:hidden">
+    <div className="md:hidden relative">
       <button 
-        // onClick={toggleMenu}
+        onClick={handleClick}
         className="p-0 hover:bg-transparent focus:outline-none"
       >
         <Menu className="h-6 w-6 text-gray-900 dark:text-white" />
       </button>
 
-      {/* Commenting out all menu functionality
+      {/* Fun Toast Message */}
+      {showToast && (
+        <div className="absolute right-0 top-10 w-48 p-3 
+          bg-white dark:bg-gray-800 
+          border-2 border-green-600 dark:border-green-600 rounded-lg
+          shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
+          transform transition-all animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          <p className="text-green-700 dark:text-green-500 text-sm font-medium text-center">
+            Bros, nothing dey there! 😅
+          </p>
+        </div>
+      )}
+
       <AnimatePresence>
         {isOpen && (
           <>
@@ -112,7 +131,6 @@ export function MobileMenu() {
           </>
         )}
       </AnimatePresence>
-      */}
     </div>
   )
 }
