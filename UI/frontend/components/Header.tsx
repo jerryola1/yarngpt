@@ -39,7 +39,7 @@ export function Header() {
               Home
             </Link>
             <Link 
-              href="/about" 
+              href="#" 
               className="px-4 py-2 text-green-700 dark:text-green-500
                 border-2 border-green-600 dark:border-green-600 rounded-lg
                 shadow-[2px_2px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[2px_2px_0px_0px_rgba(22,163,74,0.2)]
@@ -48,7 +48,7 @@ export function Header() {
               About
             </Link>
             <Link 
-              href="/contact"
+              href="#"
               className="px-4 py-2 bg-green-600 text-white dark:bg-green-600
                 border-2 border-green-600 dark:border-green-600 rounded-lg
                 shadow-[2px_2px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[2px_2px_0px_0px_rgba(22,163,74,0.2)]

@@ -1,7 +1,8 @@
 modal
 yarngpt==0.2.0
 cloudinary
-torchaudio
+torchaudio==2.5.1
 python-dotenv
 fastapi
 pydantic
+torch==2.5.1

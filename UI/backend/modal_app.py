@@ -4,7 +4,7 @@ import os
 #import the FastAPI app from app/main.py
 from app.main import app as fastapi_app
 
-app = modal.App("yarn-gpt-api")
+app = modal.App("yarn-gpt-api-whogocode-workspace")
 
 #create volumes for model files and cache
 model_volume = modal.Volume.from_name("yarngpt-model-files", create_if_missing=True)
@@ -16,12 +16,17 @@ cloudinary_secret = modal.Secret.from_name("yarngpt-CLOUDINARY-secret")
 
 #configure the container image
 image = (
-    modal.Image.debian_slim()
-    .apt_install(["libportaudio2"]) 
+    # modal.Image.debian_slim()
+    modal.Image.from_registry("nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04", add_python="3.11")
+    .apt_install([
+        "libportaudio2",
+        "clang",
+        "build-essential"
+    ]) 
     .pip_install(
         "fastapi", "uvicorn", "yarngpt>=0.2.0", "cloudinary", "torchaudio",
         "python-dotenv", "pydantic", "transformers", "huggingface-hub",
-        "sounddevice", "hf_transfer"  
+        "sounddevice", "hf_transfer", "torch==2.5.1"  
     )
     .env({
         "HF_HOME": "/cache",
@@ -48,3 +53,4 @@ def fastapi_app():
 
 if __name__ == "__main__":
     app.serve()
+    # modal.serve(app)

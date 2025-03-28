@@ -8,6 +8,8 @@ from yarngpt import generate_speech
 import torch
 import gc
 from huggingface_hub import HfFolder
+import datetime
+import re
 
 load_dotenv()
 
@@ -23,7 +25,7 @@ class YarnGPTHandler:
 
     def __init__(self):
         if not YarnGPTHandler._is_initialized:
-            # Initialize Cloudinary
+            #initialize Cloudinary
             cloudinary.config(
                 cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
                 api_key=os.getenv("CLOUDINARY_API_KEY"),
@@ -39,9 +41,9 @@ class YarnGPTHandler:
                               max_length: int = 4000,
                               language: str = "english") -> str:
         try:
-            # Ensure we're using CPU for generation
+            #ensure we're using CPU for generation
             with torch.no_grad():
-                # Verify we have a token before generation
+                #verify we have a token before generation
                 if not HfFolder.get_token():
                     raise Exception("No Hugging Face token available for model access")
                     
@@ -54,21 +56,28 @@ class YarnGPTHandler:
                     language=language
                 )
             
-            # Save temporarily and upload to Cloudinary
+            #save temporarily and upload to Cloudinary
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
                 torchaudio.save(temp_file.name, audio, sample_rate=24000)
+
+                #create a meaningful filename
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                #clean text for filename (first 30 chars, remove special chars)
+                clean_text = re.sub(r'[^a-zA-Z0-9]', '_', text[:30]).lower().strip('_')
+                filename = f"{timestamp}_{speaker}_{clean_text}"
                 
-                # Upload to Cloudinary
+                #upload to Cloudinary
                 upload_result = cloudinary.uploader.upload(
                     temp_file.name,
                     resource_type="auto",
-                    folder="yarngpt_audio"
+                    folder="yarngpt_audio",
+                    public_id=filename
                 )
                 
-                # Clean up temp file
+                #clean up temp file
                 os.unlink(temp_file.name)
                 
-                # Force garbage collection
+                #force garbage collection
                 gc.collect()
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()

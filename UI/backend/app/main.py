@@ -13,7 +13,7 @@ origins = [
     "http://localhost:8000"
 ]
 
-# Configure CORS
+#configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -29,7 +29,7 @@ async def startup_event():
     print("Starting up FastAPI app...")
     print("Debug - Environment variables:", {k: v[:4] + "..." if v else v for k, v in os.environ.items() if k in ['HF_TOKEN', 'HUGGINGFACE_TOKEN', 'HF_HOME']})
     
-    # Login to Hugging Face if token is available
+    #login to Hugging Face if token is available
     hf_token = os.environ.get('HUGGINGFACE_TOKEN') or os.environ.get('HF_TOKEN')
     if hf_token:
         login(token=hf_token)
@@ -37,7 +37,7 @@ async def startup_event():
     else:
         print("No Hugging Face token found in startup!")
 
-# Include routers
+#include routers
 app.include_router(tts.router, prefix="/api/v1", tags=["text-to-speech"])
 
 @app.get("/")
