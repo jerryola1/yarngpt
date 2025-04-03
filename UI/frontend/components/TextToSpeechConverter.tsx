@@ -71,7 +71,7 @@ const getUsageData = (): UsageData => {
 
 // Use environment variable for API URL
 // const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://yarngpt--yarn-gpt-api-fastapi-app.modal.run';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://hull-chat--yarn-gpt-api-fastapi-app.modal.run';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://whogocode-labs--yarn-gpt-api-whogocode-workspace-fastapi-app.modal.run';
 
 const loadingMessages = [
   { message: "Warming up our GPU Momory...", duration: 2000 },
