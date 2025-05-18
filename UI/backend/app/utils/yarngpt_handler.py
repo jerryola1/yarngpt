@@ -39,7 +39,7 @@ class YarnGPTHandler:
                               temperature: float = 0.1,
                               repetition_penalty: float = 1.1,
                               max_length: int = 4000,
-                              language: str = "english") -> str:
+                              language: str = "english") -> dict:
         try:
             #ensure we're using CPU for generation
             with torch.no_grad():
@@ -82,10 +82,23 @@ class YarnGPTHandler:
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
                 
-                return upload_result["secure_url"]
+                return {
+                    "audio_url": upload_result["secure_url"],
+                    "public_id": upload_result["public_id"]
+                }
                 
         except Exception as e:
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             raise Exception(f"Speech generation failed: {str(e)}")
+
+    def delete_audio(self, public_id: str) -> dict:
+        try:
+            result = cloudinary.uploader.destroy(public_id, resource_type="video")
+            if result.get("result") == "ok":
+                return {"result": "ok"}
+            else:
+                return {"result": "error", "detail": result}
+        except Exception as e:
+            return {"result": "error", "detail": str(e)}

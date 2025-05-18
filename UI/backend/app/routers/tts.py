@@ -14,10 +14,13 @@ class TTSRequest(BaseModel):
     max_length: int = 4000
     language: str = "english"
 
+class DeleteAudioRequest(BaseModel):
+    public_id: str
+
 @router.post("/generate-speech")
 async def generate_speech(request: TTSRequest):
     try:
-        audio_url = await tts_handler.generate_speech(
+        result = await tts_handler.generate_speech(
             text=request.text,
             speaker=request.speaker,
             temperature=request.temperature,
@@ -25,8 +28,7 @@ async def generate_speech(request: TTSRequest):
             max_length=request.max_length,
             language=request.language
         )
-        
-        return {"audio_url": audio_url}
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -41,4 +43,12 @@ async def get_voices():
             {"id": "osagie", "gender": "male"},
             {"id": "onye", "gender": "male"}
         ]
-    } 
+    }
+
+@router.delete("/delete-audio")
+async def delete_audio(request: DeleteAudioRequest):
+    result = tts_handler.delete_audio(request.public_id)
+    if result["result"] == "ok":
+        return result
+    else:
+        raise HTTPException(status_code=400, detail=result) 
