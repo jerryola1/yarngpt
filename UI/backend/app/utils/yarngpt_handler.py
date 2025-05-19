@@ -94,11 +94,15 @@ class YarnGPTHandler:
             raise Exception(f"Speech generation failed: {str(e)}")
 
     def delete_audio(self, public_id: str) -> dict:
-        try:
-            result = cloudinary.uploader.destroy(public_id, resource_type="video")
-            if result.get("result") == "ok":
-                return {"result": "ok"}
-            else:
-                return {"result": "error", "detail": result}
-        except Exception as e:
-            return {"result": "error", "detail": str(e)}
+        print(f"Deleting public_id: {public_id}")
+        # Try deleting as video first
+        result = cloudinary.uploader.destroy(public_id, resource_type="video")
+        print(f"Cloudinary result (video): {result}")
+        if result.get("result") == "ok":
+            return {"result": "ok"}
+        # If not found, try as auto
+        result_auto = cloudinary.uploader.destroy(public_id, resource_type="auto")
+        print(f"Cloudinary result (auto): {result_auto}")
+        if result_auto.get("result") == "ok":
+            return {"result": "ok"}
+        return {"result": "error", "detail": {"video": result, "auto": result_auto}}
