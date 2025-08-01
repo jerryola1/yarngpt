@@ -46,3 +46,5 @@ yarn-error.log*
 
 frontend_new/
 backend/test_secret.py
+
+model_training/

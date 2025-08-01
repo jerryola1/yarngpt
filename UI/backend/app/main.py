@@ -36,6 +36,12 @@ async def startup_event():
         print(f"Successfully logged in to Hugging Face with token: {hf_token[:4]}...")
     else:
         print("No Hugging Face token found in startup!")
+    
+    #preload TTS model to eliminate cold start delays
+    print("Preloading TTS model...")
+    from app.routers.tts import tts_handler
+    await tts_handler.warm_model()
+    print("TTS model preloaded successfully!")
 
 #include routers
 app.include_router(tts.router, prefix="/api/v1", tags=["text-to-speech"])
