@@ -21,7 +21,10 @@ image = (
     .apt_install([
         "libportaudio2",
         "clang",
-        "build-essential"
+        "build-essential",
+        "git",
+        "cmake",
+        "libomp-dev"
     ]) 
     .pip_install(
         "fastapi", "uvicorn", "yarngpt>=0.2.0", "cloudinary", "torchaudio",
