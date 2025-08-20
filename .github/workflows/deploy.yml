@@ -30,6 +30,9 @@ jobs:
         echo "#Modal deployment URL" > .env.production
         echo "NEXT_PUBLIC_API_URL=${{ vars.MODAL_ENDPOINT }}" >> .env.production
 
+    - name: Print API endpoint used
+      run: echo "Using NEXT_PUBLIC_API_URL=${{ vars.MODAL_ENDPOINT }}"
+
     - name: Build Next.js App
       run: |
         cd UI/frontend

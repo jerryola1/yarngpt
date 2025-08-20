@@ -177,7 +177,17 @@ export default function TextToSpeechConverter() {
     setAudioUrl(null)
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/generate-speech`, {
+      if (!API_URL) {
+        console.error('NEXT_PUBLIC_API_URL is not defined')
+        setError('Service endpoint not configured. Please try again later.')
+        setIsProcessing(false)
+        return
+      }
+
+      const endpoint = `${API_URL}/api/v1/generate-speech`
+      console.info('TTS endpoint:', endpoint)
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
