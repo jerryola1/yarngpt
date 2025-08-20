@@ -113,7 +113,7 @@ export default function TextToSpeechConverter() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const res = await fetch('/config.json', { cache: 'no-store' })
+        const res = await fetch(`/config.json?v=${Date.now()}`, { cache: 'no-store' })
         if (res.ok) {
           const cfg = await res.json()
           if (cfg && typeof cfg.apiUrl === 'string' && cfg.apiUrl.length > 0) {
