@@ -69,8 +69,8 @@ const getUsageData = (): UsageData => {
   return newData
 }
 
-// Use environment variable for API URL (build-time default)
-const BUILD_API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Use environment variable for API URL (build-time default) 
+const BUILD_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://leadtech-lab--yarn-gpt-api-whogocode-workspace-fastapi-app.modal.run';
 
 const loadingMessages = [
   { message: "Warming up our GPU Momory...", duration: 2000 },
