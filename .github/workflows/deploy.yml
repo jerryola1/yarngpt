@@ -24,14 +24,18 @@ jobs:
         cd UI/frontend
         npm install --legacy-peer-deps
 
+    - name: Generate .env.production from GitHub variable
+      run: |
+        cd UI/frontend
+        echo "#Modal deployment URL" > .env.production
+        echo "NEXT_PUBLIC_API_URL=${{ vars.MODAL_ENDPOINT }}" >> .env.production
+
     - name: Build Next.js App
       run: |
         cd UI/frontend
         npm run build
       env:
         CI: false
-        # NEXT_PUBLIC_API_URL: https://yarngpt--yarn-gpt-api-fastapi-app.modal.run
-        NEXT_PUBLIC_API_URL: https://whogocode-labs--yarn-gpt-api-whogocode-workspace-fastapi-app.modal.run
 
     - name: FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4

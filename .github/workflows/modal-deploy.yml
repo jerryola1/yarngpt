@@ -1,12 +1,8 @@
 name: Deploy Modal Backend
 
+# Disabled auto-deployment - use manual deployment instead
 on:
-  push:
-    branches: 
-      - feature/yarngpt-ui
-    paths:
-      - 'UI/backend/**'
-      - '.github/workflows/modal-deploy.yml'
+  workflow_dispatch:  
 
 jobs:
   deploy:
@@ -25,7 +21,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install modal
+          pip install modal fastapi pydantic python-dotenv transformers huggingface-hub cloudinary
+          # Install yarngpt without triggering model downloads by setting offline mode
+          pip install --no-deps yarngpt>=0.2.0
           
       - name: Configure Modal token
         run: |
@@ -37,4 +35,6 @@ jobs:
       - name: Deploy to Modal
         run: |
           cd UI/backend
+          # Set environment variable to prevent model downloads during packaging
+          export YARNGPT_OFFLINE=1
           modal deploy modal_app.py
