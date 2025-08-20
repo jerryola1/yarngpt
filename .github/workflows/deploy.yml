@@ -39,6 +39,12 @@ jobs:
         npm run build
       env:
         CI: false
+        NEXT_PUBLIC_API_URL: ${{ vars.MODAL_ENDPOINT }}
+
+    - name: Verify endpoint in exported files
+      run: |
+        echo "Verifying endpoint in exported bundle..."
+        grep -R "${{ vars.MODAL_ENDPOINT }}" UI/frontend/out || (echo "Endpoint not found in bundle" && exit 1)
 
     - name: FTPS Deploy
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -50,6 +56,7 @@ jobs:
         security: strict
         local-dir: UI/frontend/out/
         server-dir: /public_html/
+        dangerous-clean-slate: true
         exclude: |
           **/.git*
           **/.git*/** 
