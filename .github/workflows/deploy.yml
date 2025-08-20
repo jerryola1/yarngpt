@@ -37,12 +37,14 @@ jobs:
       env:
         CI: false
 
-    - name: FTP Deploy
+    - name: FTPS Deploy
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
+        protocol: ftps
+        security: strict
         local-dir: UI/frontend/out/
         server-dir: /public_html/
         exclude: |
