@@ -208,6 +208,7 @@ export default function TextToSpeechConverter() {
 
       const endpoint = `${effectiveBase}/api/v1/generate-speech`
       console.info('TTS endpoint:', endpoint, '| base from', apiBaseUrl ? 'config.json' : (runtimeApiUrl ? 'window' : 'build'))
+      console.info('Debug - apiBaseUrl:', apiBaseUrl, 'runtimeApiUrl:', runtimeApiUrl, 'BUILD_API_URL:', BUILD_API_URL)
 
       const response = await fetch(endpoint, {
         method: 'POST',
