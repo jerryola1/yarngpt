@@ -69,8 +69,8 @@ const getUsageData = (): UsageData => {
   return newData
 }
 
-// Use environment variable for API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Use environment variable for API URL (build-time default)
+const BUILD_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const loadingMessages = [
   { message: "Warming up our GPU Momory...", duration: 2000 },
@@ -92,6 +92,7 @@ export default function TextToSpeechConverter() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
+  const [apiBaseUrl, setApiBaseUrl] = useState<string | undefined>(undefined)
   const [formData, setFormData] = useState({
     text: "",
     speaker: "idera",
@@ -106,6 +107,24 @@ export default function TextToSpeechConverter() {
   // Initialize usage data on client side
   useEffect(() => {
     setUsageData(getUsageData())
+  }, [])
+
+  // Load runtime config to allow endpoint overrides without redeploying JS
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = await fetch('/config.json', { cache: 'no-store' })
+        if (res.ok) {
+          const cfg = await res.json()
+          if (cfg && typeof cfg.apiUrl === 'string' && cfg.apiUrl.length > 0) {
+            setApiBaseUrl(cfg.apiUrl)
+            console.info('Config apiUrl detected:', cfg.apiUrl)
+          }
+        }
+      } catch (_) {
+      }
+    }
+    if (typeof window !== 'undefined') loadConfig()
   }, [])
 
   useEffect(() => {
@@ -177,15 +196,18 @@ export default function TextToSpeechConverter() {
     setAudioUrl(null)
 
     try {
-      if (!API_URL) {
+      const runtimeApiUrl = (typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_API_URL) || undefined
+      const effectiveBase = apiBaseUrl || runtimeApiUrl || BUILD_API_URL
+
+      if (!effectiveBase) {
         console.error('NEXT_PUBLIC_API_URL is not defined')
         setError('Service endpoint not configured. Please try again later.')
         setIsProcessing(false)
         return
       }
 
-      const endpoint = `${API_URL}/api/v1/generate-speech`
-      console.info('TTS endpoint:', endpoint)
+      const endpoint = `${effectiveBase}/api/v1/generate-speech`
+      console.info('TTS endpoint:', endpoint, '| base from', apiBaseUrl ? 'config.json' : (runtimeApiUrl ? 'window' : 'build'))
 
       const response = await fetch(endpoint, {
         method: 'POST',
