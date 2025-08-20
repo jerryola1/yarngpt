@@ -38,7 +38,15 @@ jobs:
     - name: Build Next.js App
       run: |
         cd UI/frontend
+        # Clean build cache first
+        rm -rf .next
+        rm -rf out
+        # Force cache busting by adding timestamp to build
+        export BUILD_ID=$(date +%s)
         npm run build
+        # Verify the correct endpoint is in the build
+        echo "Checking built files for endpoint..."
+        grep -r "${{ vars.MODAL_ENDPOINT }}" out/ || echo "New endpoint not found in build - this is the problem!"
       env:
         CI: false
         NEXT_PUBLIC_API_URL: ${{ vars.MODAL_ENDPOINT }}

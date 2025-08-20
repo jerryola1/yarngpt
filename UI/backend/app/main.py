@@ -10,6 +10,7 @@ origins = [
     "https://yarn.correct.ng",
     "https://yarngpt.co",
     "http://localhost:3000",
+    "http://localhost:3002", 
     "http://localhost:8000"
 ]
 
