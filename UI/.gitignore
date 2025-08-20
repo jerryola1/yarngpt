@@ -50,3 +50,4 @@ backend/test_secret.py
 model_training/
 
 .claude/
+temp/
