@@ -112,13 +112,21 @@ class YarnGPTHandler:
             clean_text = re.sub(r'[^a-zA-Z0-9]', '_', text[:30]).lower().strip('_')
             filename = f"{timestamp}_{speaker}_{clean_text}"
             
-            #upload to Cloudinary
+            #upload to Cloudinary with metadata
             upload_start = time.time()
             upload_result = cloudinary.uploader.upload(
                 temp_file.name,
                 resource_type="auto",
                 folder="yarngpt_audio",
-                public_id=filename
+                public_id=filename,
+                context={
+                    "text": text,
+                    "speaker": speaker,
+                    "language": language,
+                    "temperature": str(temperature),
+                    "repetition_penalty": str(repetition_penalty),
+                    "max_length": str(max_length)
+                }
             )
             upload_time = time.time() - upload_start
             print(f"Cloudinary upload completed in {upload_time:.2f}s")
