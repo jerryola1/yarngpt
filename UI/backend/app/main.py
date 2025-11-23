@@ -9,10 +9,14 @@ app = FastAPI(title="YarnGPT API")
 origins = [
     "https://yarn.correct.ng",
     "https://yarngpt.co",
+    "https://www.yarngpt.co",
     "http://localhost:3000",
     "http://localhost:3002", 
-    "http://localhost:8000"
+    "http://localhost:8000",
+    "https://yarngpt.vercel.app"
 ]
+
+print(f"Final allowed origins: {origins}")
 
 #configure CORS
 app.add_middleware(
