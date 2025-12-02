@@ -1,137 +1,93 @@
 "use client"
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { Menu, X, Coffee } from "lucide-react"
+import { Menu, X, Coffee, Home, Download, LifeBuoy, HelpCircle } from "lucide-react"
+import { ThemeToggle } from "./ThemeToggle"
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
-  const [showToast, setShowToast] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const toggleMenu = () => setIsOpen(!isOpen)
 
-  const menuVariants = {
-    closed: { opacity: 0, x: "100%" },
-    open: { opacity: 1, x: 0 }
-  }
-
-  const handleClick = () => {
-    setShowToast(true)
-    setTimeout(() => setShowToast(false), 2000)
-  }
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   return (
-    <div className="md:hidden relative">
+    <div className="relative" ref={menuRef}>
       <button 
-        onClick={handleClick}
-        className="p-0 hover:bg-transparent focus:outline-none"
+        onClick={toggleMenu}
+        className="p-1 hover:bg-transparent focus:outline-none flex items-center justify-center"
+        aria-label="Toggle mobile menu"
       >
-        <Menu className="h-6 w-6 text-gray-900 dark:text-white" />
+        {isOpen ? (
+           <X className="h-6 w-6 text-foreground" />
+        ) : (
+           <Menu className="h-6 w-6 text-foreground" />
+        )}
       </button>
 
-      {/* Fun Toast Message */}
-      {showToast && (
-        <div className="absolute right-0 top-10 w-48 p-3 
-          bg-white dark:bg-gray-800 
-          border-2 border-green-600 dark:border-green-600 rounded-lg
-          shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
-          transform transition-all animate-in fade-in slide-in-from-top-2 duration-200"
-        >
-          <p className="text-green-700 dark:text-green-500 text-sm font-medium text-center">
-            Bros, nothing dey there! 😅
-          </p>
-        </div>
-      )}
-
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              onClick={toggleMenu}
-              className="fixed inset-0 bg-black z-40"
-            />
-
-            <motion.div
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={menuVariants}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed right-0 top-0 h-full w-[80%] max-w-sm 
-                bg-white dark:bg-slate-800 z-50 
-                border-l-4 border-black dark:border-white
-                shadow-[-4px_0px_0px_0px_rgba(0,0,0)] dark:shadow-[-4px_0px_0px_0px_rgba(255,255,255)]"
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-4 w-64 bg-background border-2 border-border shadow-xl z-50 divide-y divide-border/50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <Link
+              href="/"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+              onClick={() => setIsOpen(false)}
             >
-              <button 
-                onClick={toggleMenu}
-                className="absolute top-4 right-4 p-2
-                  border-2 border-black dark:border-white rounded-lg
-                  shadow-[2px_2px_0px_0px_rgba(0,0,0)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255)]
-                  hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-              >
-                <X className="h-6 w-6 text-gray-900 dark:text-white" />
-              </button>
-
-              <nav className="flex flex-col items-start p-8 mt-16 space-y-6">
-                <Link 
-                  href="/" 
-                  className="text-xl font-bold px-4 py-2 w-full
-                    text-gray-900 dark:text-white
-                    border-2 border-black dark:border-white rounded-lg
-                    shadow-[2px_2px_0px_0px_rgba(0,0,0)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255)]
-                    hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-                  onClick={toggleMenu}
-                >
-                  Home
-                </Link>
-                <Link 
-                  href="/about" 
-                  className="text-xl font-bold px-4 py-2 w-full
-                    text-gray-900 dark:text-white
-                    border-2 border-black dark:border-white rounded-lg
-                    shadow-[2px_2px_0px_0px_rgba(0,0,0)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255)]
-                    hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-                  onClick={toggleMenu}
-                >
-                  About
-                </Link>
-                <Link 
-                  href="/contact"
-                  className="text-xl font-bold px-4 py-2 w-full
-                    text-gray-900 dark:text-white
-                    border-2 border-black dark:border-white rounded-lg
-                    shadow-[2px_2px_0px_0px_rgba(0,0,0)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255)]
-                    hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-                  onClick={toggleMenu}
-                >
-                  Contact
-                </Link>
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
+            <Link
+              href="/download"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </Link>
+            <Link
+              href="/support"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <LifeBuoy className="h-4 w-4" />
+              Support
+            </Link>
+            <Link
+              href="/how-to"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:text-brand-primary hover:bg-brand-primary/10 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <HelpCircle className="h-4 w-4" />
+              How To
+            </Link>
+            
+            <div className="p-4 space-y-3">
                 <a 
-                  href="https://buymeacoffee.com/yarngpt"
+                  href="https://www.buymeacoffee.com/yarngpt"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xl font-bold px-4 py-2 w-full
-                    text-gray-900 dark:text-white
-                    border-2 border-black dark:border-white rounded-lg
-                    shadow-[2px_2px_0px_0px_rgba(0,0,0)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255)]
-                    hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none
-                    hover:bg-yellow-400 hover:text-black transition-all
-                    flex items-center space-x-2"
-                  onClick={toggleMenu}
+                  className="flex w-full items-center justify-center gap-2 bg-card border-2 border-border px-4 py-2 text-sm font-bold text-foreground hover:bg-accent hover:text-accent-foreground hover:border-brand-primary/50 transition-all"
+                  onClick={() => setIsOpen(false)}
                 >
-                  <Coffee className="h-6 w-6" />
-                  <span>Buy me a coffee</span>
+                  <Coffee className="h-4 w-4" />
+                  Buy Coffee
                 </a>
-              </nav>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                {/* <div className="flex justify-center">
+                    <ThemeToggle />
+                </div> */}
+            </div>
+        </div>
+      )}
     </div>
   )
 }
-

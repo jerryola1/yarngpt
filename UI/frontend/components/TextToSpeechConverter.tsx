@@ -1,16 +1,15 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Paperclip } from "lucide-react"
-import LoadingSpinner from "@/components/LoadingSpinner"
+import { Mic2, Settings, FileText, Download, Play, Pause, Loader2 } from "lucide-react"
 
-// Usage tracking constants
-const DAILY_LIMIT = 10
+// --- Constants & Helpers ---
+const DAILY_LIMIT = 5
 const STORAGE_KEY = 'yarngpt_usage'
 
 interface UsageData {
@@ -20,7 +19,16 @@ interface UsageData {
   lastUsed: string
 }
 
-// Helper function to generate session ID
+interface AudioHistoryItem {
+  id: string;
+  text: string;
+  voice: string;
+  language: string;
+  url: string;
+  timestamp: string;
+  fileName?: string;
+}
+
 const generateSessionId = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0
@@ -29,27 +37,26 @@ const generateSessionId = () => {
   })
 }
 
-// Helper function to get today's date as string
 const getTodayString = () => {
   return new Date().toISOString().split('T')[0]
 }
 
-// Helper function to initialize or get usage data
-const getUsageData = (): UsageData => {
-  // Check if we're in the browser environment
-  if (typeof window === 'undefined') {
-    return {
-      sessionId: '',
-      dailyCount: 0,
-      totalCount: 0,
-      lastUsed: getTodayString()
-    }
-  }
+// Helper to save to history
+const saveAudioToHistory = (item: AudioHistoryItem) => {
+  if (typeof window === 'undefined') return;
+  const historyString = localStorage.getItem('yarngpt_history');
+  const history: AudioHistoryItem[] = historyString ? JSON.parse(historyString) : [];
+  history.unshift(item); 
+  localStorage.setItem('yarngpt_history', JSON.stringify(history));
+}
 
+const getUsageData = (): UsageData => {
+  if (typeof window === 'undefined') {
+    return { sessionId: '', dailyCount: 0, totalCount: 0, lastUsed: getTodayString() }
+  }
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored) {
     const data = JSON.parse(stored)
-    // Reset daily count if it's a new day
     if (data.lastUsed !== getTodayString()) {
       data.dailyCount = 0
       data.lastUsed = getTodayString()
@@ -57,8 +64,6 @@ const getUsageData = (): UsageData => {
     }
     return data
   }
-  
-  // Initialize new usage data
   const newData: UsageData = {
     sessionId: generateSessionId(),
     dailyCount: 0,
@@ -69,29 +74,48 @@ const getUsageData = (): UsageData => {
   return newData
 }
 
-// Use environment variable for API URL (build-time default) 
 const BUILD_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const loadingMessages = [
-  { message: "Warming up our GPU Momory...", duration: 2000 },
-  { message: "Waking up the AI container...", duration: 2000 },
-  { message: "Loading Nigerian voice models...", duration: 5000 },
-  { message: "Teaching the AI proper Naija pronunciation...", duration: 4000 },
-  { message: "Adding that special Nigerian flavor...", duration: 5000 },
-  { message: "Almost there! Generating your audio...", duration: 5000 },
+  "Warming up GPU...",
+  "Loading voice models...",
+  "Applying Naija accents...",
+  "Synthesizing speech...",
+  "Finalizing audio...",
 ]
 
+const voiceOptions = {
+  english: [
+    { value: "idera", label: "Idera (Female)" },
+    { value: "jude", label: "Jude (Male)" },
+    { value: "emma", label: "Emma (Female)" },
+    { value: "joke", label: "Joke (Female)" },
+    { value: "osagie", label: "Osagie (Male)" },
+    { value: "remi", label: "Remi (Female)" },
+    { value: "tayo", label: "Tayo (Male)" }
+  ],
+  yoruba: [
+    { value: "abayomi", label: "Abayomi (Male)" },
+    { value: "aisha", label: "Aisha (Female)" }
+  ],
+  igbo: [
+    { value: "obinna", label: "Obinna (Male)" }
+  ],
+  hausa: [
+    { value: "amina", label: "Amina (Female)" },
+    { value: "fatima", label: "Fatima (Female)" }
+  ]
+}
+
 export default function TextToSpeechConverter() {
+  // --- State ---
   const [usageData, setUsageData] = useState<UsageData>({
-    sessionId: '',
-    dailyCount: 0,
-    totalCount: 0,
-    lastUsed: getTodayString()
+    sessionId: '', dailyCount: 0, totalCount: 0, lastUsed: getTodayString()
   })
   const [isProcessing, setIsProcessing] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
+  const [loadingMsg, setLoadingMsg] = useState(loadingMessages[0])
   const [apiBaseUrl, setApiBaseUrl] = useState<string | undefined>(undefined)
   const [formData, setFormData] = useState({
     text: "",
@@ -104,70 +128,35 @@ export default function TextToSpeechConverter() {
     speed: 1,
   })
 
-  // Initialize usage data on client side
-  useEffect(() => {
-    setUsageData(getUsageData())
-  }, [])
+  // --- Effects ---
+  useEffect(() => { setUsageData(getUsageData()) }, [])
 
-  // Load runtime config to allow endpoint overrides without redeploying JS
   useEffect(() => {
     const loadConfig = async () => {
       try {
         const res = await fetch(`/config.json?v=${Date.now()}`, { cache: 'no-store' })
         if (res.ok) {
           const cfg = await res.json()
-          if (cfg && typeof cfg.apiUrl === 'string' && cfg.apiUrl.length > 0) {
-            setApiBaseUrl(cfg.apiUrl)
-            console.info('Config apiUrl detected:', cfg.apiUrl)
-          }
+          if (cfg?.apiUrl) setApiBaseUrl(cfg.apiUrl)
         }
-      } catch (_) {
-      }
+      } catch (_) {}
     }
     if (typeof window !== 'undefined') loadConfig()
   }, [])
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout
-    if (isProcessing && loadingMessageIndex < loadingMessages.length - 1) {
-      timeout = setTimeout(() => {
-        setLoadingMessageIndex(prev => prev + 1)
-      }, loadingMessages[loadingMessageIndex].duration)
+    let interval: NodeJS.Timeout
+    if (isProcessing) {
+      let i = 0
+      interval = setInterval(() => {
+        i = (i + 1) % loadingMessages.length
+        setLoadingMsg(loadingMessages[i])
+      }, 2500)
     }
-    return () => clearTimeout(timeout)
-  }, [isProcessing, loadingMessageIndex])
-
-  // Reset loading message index when processing stops
-  useEffect(() => {
-    if (!isProcessing) {
-      setLoadingMessageIndex(0)
-    }
+    return () => clearInterval(interval)
   }, [isProcessing])
 
-  // Add voice options by language
-  const voiceOptions = {
-    english: [
-      { value: "idera", label: "Idera (Female)" },
-      { value: "jude", label: "Jude (Male)" },
-      { value: "emma", label: "Emma (Female)" },
-      { value: "joke", label: "Joke (Female)" },
-      { value: "osagie", label: "Osagie (Male)" },
-      { value: "remi", label: "Remi (Female)" },
-      { value: "tayo", label: "Tayo (Male)" }
-    ],
-    yoruba: [
-      { value: "abayomi", label: "Abayomi (Male)" },
-      { value: "aisha", label: "Aisha (Female)" }
-    ],
-    igbo: [
-      { value: "obinna", label: "Obinna (Male)" }
-    ],
-    hausa: [
-      { value: "amina", label: "Amina (Female)" },
-      { value: "fatima", label: "Fatima (Female)" }
-    ]
-  }
-
+  // --- Handlers ---
   const handleLanguageChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -176,18 +165,69 @@ export default function TextToSpeechConverter() {
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Validate empty text
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    if (name === "text") {
+      const words = value.trim().split(/\s+/).filter(word => word.length > 0)
+      if (words.length > 60) {
+        setFormData(prev => ({ ...prev, [name]: words.slice(0, 60).join(' ') }))
+      } else {
+        setFormData(prev => ({ ...prev, [name]: value }))
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleSpeedChange = (value: number[]) => {
+    setFormData((prev) => ({ ...prev, speed: value[0] }))
+  }
+
+  const getWordCount = (text: string) => {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length
+  }
+
+  const handleDownload = async () => {
+    if (!audioUrl) return;
+    try {
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = formData.fileName ? `${formData.fileName}.wav` : (audioUrl.split('/').pop() || 'audio.wav');
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError('Failed to download audio file');
+    }
+  }
+
+  // --- Audio Control Ref and Handler ---
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const handlePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause()
+      } else {
+        audioRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!formData.text.trim()) {
-      setError("Please enter some text to convert to speech.")
+      setError("Please enter some text.")
       return
     }
-    
-    // Check daily limit
     if (usageData.dailyCount >= DAILY_LIMIT) {
-      setError("You've reached your daily limit. Please try again tomorrow.")
+      setError("Daily limit reached.")
       return
     }
 
@@ -197,25 +237,12 @@ export default function TextToSpeechConverter() {
 
     try {
       const runtimeApiUrl = (typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_API_URL) || undefined
-      const effectiveBase = apiBaseUrl || runtimeApiUrl || BUILD_API_URL
-
-      if (!effectiveBase) {
-        console.error('NEXT_PUBLIC_API_URL is not defined')
-        setError('Service endpoint not configured. Please try again later.')
-        setIsProcessing(false)
-        return
-      }
-
+      const effectiveBase = apiBaseUrl || runtimeApiUrl || BUILD_API_URL || ''
       const endpoint = `${effectiveBase}/api/v1/generate-speech`
-      console.info('TTS endpoint:', endpoint, '| base from', apiBaseUrl ? 'config.json' : (runtimeApiUrl ? 'window' : 'build'))
-      console.info('Debug - apiBaseUrl:', apiBaseUrl, 'runtimeApiUrl:', runtimeApiUrl, 'BUILD_API_URL:', BUILD_API_URL)
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           text: formData.text,
           speaker: formData.speaker,
@@ -227,277 +254,188 @@ export default function TextToSpeechConverter() {
       })
 
       const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to generate speech')
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate speech')
-      }
-
-      // Update usage counts on successful generation
-      const newUsageData = {
-        ...usageData,
-        dailyCount: usageData.dailyCount + 1,
-        totalCount: usageData.totalCount + 1,
-        lastUsed: getTodayString()
-      }
+      const newUsageData = { ...usageData, dailyCount: usageData.dailyCount + 1, totalCount: usageData.totalCount + 1, lastUsed: getTodayString() }
       setUsageData(newUsageData)
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newUsageData))
-
       setAudioUrl(data.audio_url)
+
+      // Save to history
+      saveAudioToHistory({
+        id: crypto.randomUUID(), 
+        text: formData.text,
+        voice: formData.speaker,
+        language: formData.language,
+        url: data.audio_url,
+        timestamp: new Date().toISOString(),
+        fileName: formData.fileName,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while generating speech')
-      console.error('Speech generation error:', err)
+      setError(err instanceof Error ? err.message : 'Error generating speech')
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    
-    if (name === "text") {
-      const words = value.trim().split(/\s+/).filter(word => word.length > 0)
-      if (words.length > 60) {
-        // Take only first 60 words
-        const truncatedText = words.slice(0, 60).join(' ')
-        setFormData(prev => ({ ...prev, [name]: truncatedText }))
-      } else {
-        setFormData(prev => ({ ...prev, [name]: value }))
-      }
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }))
-    }
-  }
-
-  const getWordCount = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length
-  }
-
-  const handleSpeedChange = (value: number[]) => {
-    setFormData((prev) => ({ ...prev, speed: value[0] }))
-  }
-
-  const handleDownload = async () => {
-    if (!audioUrl) return;
-    
-    try {
-      const response = await fetch(audioUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const filename = formData.fileName 
-        ? `${formData.fileName}.wav`
-        : audioUrl.split('/').pop() || 'audio.wav';
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      setError('Failed to download audio file');
-    }
-  }
-
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Usage Stats Display */}
-      <div className="mb-6 p-4 bg-white dark:bg-gray-900
-        border-4 border-green-600 dark:border-green-600 rounded-xl
-        shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-green-700 dark:text-green-500 font-medium">
-              Daily Usage: {usageData.dailyCount}/{DAILY_LIMIT} requests
-            </p>
-            <p className="text-sm text-green-600 dark:text-green-400">
-              Resets at midnight
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-green-700 dark:text-green-500 font-medium">
-              Total Usage: {usageData.totalCount} requests
-            </p>
-            <p className="text-sm text-green-600 dark:text-green-400">
-              Session ID: {usageData.sessionId.slice(0, 8)}...
-            </p>
-          </div>
+    <section className="w-full max-w-5xl mx-auto flex flex-col gap-8 md:px-8">
+      {/* Main Converter Card */}
+      <div className="ring-foreground/15 shadow-sm ring-2 shadow-black/5 backdrop-blur-xl ring-inset bg-card/50 p-1 md:p-2">
+        <div className="bg-background/50 p-6 md:p-8 space-y-8">
+            
+            {/* Usage Stats Header*/}
+            <div className="flex justify-between items-center text-sm text-muted-foreground border-b border-border pb-4">
+                <span className="font-jetbrains">Daily Usage: <span className="text-foreground font-bold">{usageData.dailyCount}/{DAILY_LIMIT}</span></span>
+                <span className="font-mono text-xs">Session: {usageData.sessionId.slice(0,8)}</span>
+            </div>
+
+            {/* Top: Text Input Area */}
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold font-jetbrains text-foreground flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-brand-primary" />
+                        Input Text
+                    </label>
+                    <span className={`text-xs font-mono ${getWordCount(formData.text) >= 60 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        {getWordCount(formData.text)}/60 words
+                    </span>
+                </div>
+                <Textarea 
+                    name="text"
+                    value={formData.text}
+                    onChange={handleInputChange}
+                    placeholder="Type something here for the AI to say..."
+                    className="min-h-[160px] w-full bg-background border-border focus:ring-brand-primary/20 resize-none text-lg leading-relaxed p-4 shadow-inner"
+                    style={{ borderRadius: 0 }}
+                />
+            </div>
+
+            {/* Middle: Controls Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                {/* Language Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-bold font-jetbrains text-foreground flex items-center gap-2">
+                        Language
+                    </label>
+                    <Select value={formData.language} onValueChange={handleLanguageChange}>
+                        <SelectTrigger className="w-full h-11 bg-background border-border hover:border-brand-primary/50 transition-colors rounded-none">
+                            <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-none">
+                            <SelectItem value="english">English (Naija)</SelectItem>
+                            <SelectItem value="yoruba">Yoruba</SelectItem>
+                            <SelectItem value="igbo">Igbo</SelectItem>
+                            <SelectItem value="hausa">Hausa</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Voice Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-bold font-jetbrains text-foreground flex items-center gap-2">
+                        <Mic2 className="w-4 h-4 text-brand-primary" />
+                        Voice Model
+                    </label>
+                    <Select 
+                        value={formData.speaker}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, speaker: value }))}
+                    >
+                        <SelectTrigger className="w-full h-11 bg-background border-border hover:border-brand-primary/50 transition-colors rounded-none">
+                            <SelectValue placeholder="Select voice" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-none">
+                            {voiceOptions[formData.language as keyof typeof voiceOptions].map((voice) => (
+                                <SelectItem key={voice.value} value={voice.value}>
+                                    {voice.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Settings (Speed & Filename) */}
+                <div className="space-y-2">
+                     <label className="text-sm font-bold font-jetbrains text-foreground flex items-center gap-2">
+                        <Settings className="w-4 h-4 text-brand-primary" />
+                        Speed: {formData.speed}x
+                    </label>
+                     <div className="h-11 flex items-center px-2 bg-background border border-border">
+                        <Slider 
+                            min={0.5} max={2} step={0.1}
+                            value={[formData.speed]}
+                            onValueChange={handleSpeedChange}
+                            className="cursor-pointer"
+                        />
+                     </div>
+                </div>
+            </div>
+
+             {/* Action Area */}
+            <div className="pt-4 flex flex-col items-center gap-4">
+                 <Button 
+                    onClick={() => handleSubmit()}
+                    disabled={isProcessing || !formData.text.trim()}
+                    className="w-full md:w-2/3 h-14 text-lg font-bold font-jetbrains shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all bg-background text-foreground rounded-none"
+                >
+                    {isProcessing ? (
+                        <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Generating...
+                        </>
+                    ) : (
+                        <>
+                            <Play className="mr-2 h-5 w-5 fill-current" />
+                            Convert Text to Speech
+                        </>
+                    )}
+                </Button>
+                
+                {isProcessing && (
+                    <p className="text-sm text-foreground animate-pulse font-mono">
+                        {loadingMsg}
+                    </p>
+                )}
+                
+                {error && (
+                    <p className="text-sm text-red-500 font-medium bg-red-500/10 px-3 py-1">
+                        {error}
+                    </p>
+                )}
+            </div>
+
+            {/* Result Card */}
+            {audioUrl && (
+                <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 mt-8 p-4 border border-brand-primary/30 bg-brand-primary/5 flex flex-col md:flex-row items-center gap-4">
+                    <button 
+                        onClick={handlePlayPause}
+                        className="h-12 w-12 bg-brand-primary/20 flex items-center justify-center text-brand-primary flex-shrink-0 rounded-full hover:bg-brand-primary/30 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    >
+                        {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current ml-1" />}
+                    </button>
+                    <div className="flex-grow w-full">
+                        <p className="text-sm font-bold text-foreground mb-2 font-jetbrains">Generated Audio</p>
+                        <audio 
+                            ref={audioRef}
+                            controls 
+                            className="w-full h-8"
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            onEnded={() => setIsPlaying(false)}
+                        >
+                            <source src={audioUrl} type="audio/wav" />
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    <Button variant="outline" onClick={handleDownload} className="flex-shrink-0 rounded-none">
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                    </Button>
+                </div>
+            )}
         </div>
-        {usageData.dailyCount >= DAILY_LIMIT - 2 && usageData.dailyCount < DAILY_LIMIT && (
-          <p className="mt-2 text-yellow-600 dark:text-yellow-500 text-sm">
-            ⚠️ You're approaching your daily limit. Only {DAILY_LIMIT - usageData.dailyCount} requests remaining.
-          </p>
-        )}
-        {usageData.dailyCount >= DAILY_LIMIT && (
-          <p className="mt-2 text-red-600 dark:text-red-500 text-sm">
-            ⚠️ You've reached your daily limit. Please try again tomorrow.
-          </p>
-        )}
       </div>
-
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-8 
-        border-4 border-green-600 dark:border-green-600 rounded-xl
-        shadow-[8px_8px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[8px_8px_0px_0px_rgba(22,163,74,0.2)]
-        transform transition-all">
-        
-        {/* Text Input */}
-        <div className="mb-6 relative
-          border-2 border-green-600 dark:border-green-600 rounded-lg
-          shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]">
-          <Textarea 
-            name="text"
-            value={formData.text}
-            onChange={handleInputChange}
-            placeholder="Enter text.."
-            style={{ fontSize: '16px' }}
-            className="min-h-[120px] bg-white dark:bg-gray-900 text-green-700 dark:text-green-500 border-none focus:ring-0 rounded-lg placeholder-green-500 dark:placeholder-green-400"
-          />
-          <div className="absolute bottom-2 right-3">
-            <span className={`text-[10px] sm:text-xs font-medium ${getWordCount(formData.text) >= 60 ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-500'}`}>
-              {getWordCount(formData.text)}/60 words
-            </span>
-          </div>
-        </div>
-
-        {/* Language Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="border-2 border-green-600 dark:border-green-600 rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]">
-            <Select value={formData.language} onValueChange={handleLanguageChange}>
-              <SelectTrigger className="w-full bg-white dark:bg-gray-900 text-green-700 dark:text-green-500">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="yoruba">Yoruba</SelectItem>
-                <SelectItem value="igbo">Igbo</SelectItem>
-                <SelectItem value="hausa">Hausa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="border-2 border-green-600 dark:border-green-600 rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]">
-            <Select 
-              value={formData.speaker}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, speaker: value }))}
-            >
-              <SelectTrigger className="w-full bg-white dark:bg-gray-900 text-green-700 dark:text-green-500">
-                <SelectValue placeholder="Select voice" />
-              </SelectTrigger>
-              <SelectContent>
-                {voiceOptions[formData.language as keyof typeof voiceOptions].map((voice) => (
-                  <SelectItem key={voice.value} value={voice.value}>
-                    {voice.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Speed Control */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-green-700 dark:text-green-500">
-            Talking Speed: {formData.speed}x
-          </label>
-          <div className="border-2 border-green-600 dark:border-green-600 rounded-lg p-4
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
-            bg-white dark:bg-gray-900">
-            <Slider 
-              min={0.5}
-              max={2}
-              step={0.1}
-              value={[formData.speed]}
-              onValueChange={handleSpeedChange}
-              className="bg-green-200 dark:bg-green-800" 
-            />
-          </div>
-        </div>
-
-        {/* Filename Input */}
-        <div className="mb-6">
-          <Input 
-            name="fileName"
-            value={formData.fileName}
-            onChange={handleInputChange}
-            placeholder="Name of the resulting audio file (optional)"
-            style={{ fontSize: '16px' }}
-            className="bg-white dark:bg-gray-900 text-green-700 dark:text-green-500 border-2 border-green-600 dark:border-green-600 rounded-lg
-              shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
-              placeholder-green-500 dark:placeholder-green-400"
-          />
-        </div>
-
-        {/* Convert Button */}
-        <Button 
-          type="submit"
-          disabled={isProcessing || !formData.text.trim()}
-          className="w-full bg-green-600 text-white dark:bg-green-600 font-bold text-lg
-            border-4 border-green-600 dark:border-green-600 rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
-            hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none 
-            transform transition-all disabled:opacity-50"
-        >
-          {isProcessing ? (
-            <div className="flex items-center justify-center gap-2">
-              <LoadingSpinner />
-              <span className="ml-2">Generating Audio...</span>
-            </div>
-          ) : !formData.text.trim() ? (
-            "Enter text to convert"
-          ) : (
-            "Convert to Speech"
-          )}
-        </Button>
-
-        {/* Processing State */}
-        {isProcessing && (
-          <div className="mt-6 p-6 border-2 border-green-600 bg-green-50 dark:bg-gray-800 rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)]">
-            <div className="flex items-center justify-center">
-              <LoadingSpinner />
-              <div className="ml-4">
-                <p className="text-green-700 dark:text-green-400 font-medium">
-                  {loadingMessages[loadingMessageIndex].message}
-                </p>
-                <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-                  This might take a minute, but it worth the wait! 🎵
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="mt-6 p-4 border-2 border-red-500 bg-red-50 dark:bg-gray-800 rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(239,68,68,0.5)]">
-            <span className="text-red-700 dark:text-red-400">{error}</span>
-          </div>
-        )}
-
-        {/* Success State */}
-        {audioUrl && (
-          <div className="mt-6 p-4 border-2 border-green-600 bg-green-50 dark:bg-gray-800 rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] space-y-4">
-            <p className="text-green-700 dark:text-green-400">Audio generated successfully!</p>
-            <audio controls className="w-full">
-              <source src={audioUrl} type="audio/wav" />
-              Your browser does not support the audio element.
-            </audio>
-            <Button
-              type="button"
-              onClick={handleDownload}
-              className="w-full bg-green-600 text-white dark:bg-green-600 font-bold
-                border-2 border-green-600 dark:border-green-600 rounded-lg
-                shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(22,163,74,0.2)]
-                hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none 
-                transform transition-all"
-            >
-              Download Audio
-            </Button>
-          </div>
-        )}
-      </form>
-    </div>
+    </section>
   )
-} 
+}

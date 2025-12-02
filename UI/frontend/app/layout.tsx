@@ -5,12 +5,18 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import { GoogleAnalytics } from '@next/third-parties/google'
 import "./globals.css"
 import type { Metadata } from "next"
-import { Poppins } from "next/font/google"
+import { Poppins, JetBrains_Mono } from "next/font/google"
 
 const poppins = Poppins({
   weight: ["400", "600", "700"],
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-poppins",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
 })
 
 export const metadata: Metadata = {
@@ -46,26 +52,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/fav.png" />
-        <meta 
-          name="viewport" 
-          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" 
-        />
-      </head>
-      <body className={poppins.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </ThemeProvider>
-        <GoogleAnalytics gaId="G-CDCL3DD9DV" />
-      </body>
-    </html>
-  )
+        <html lang="en" suppressHydrationWarning className="dark" style={{ colorScheme: 'dark' }}>
+          <head>
+            <link rel="icon" href="/fav.png" />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover"
+            />
+          </head>
+          <body className={`${poppins.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground`}>
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+              </div>
+            <GoogleAnalytics gaId="G-CDCL3DD9DV" />
+          </body>
+        </html>  )
 }
-
-
-
-import './globals.css'

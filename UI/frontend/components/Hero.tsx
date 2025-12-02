@@ -1,39 +1,50 @@
-import { Button } from "@/components/ui/button"
+'use client'
+
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { Mic2, Play, GitFork, UserPlus } from "lucide-react" 
 
 export default function Hero() {
   return (
-    <div className="relative py-10 sm:py-20 w-full">
-      <div className="container mx-auto px-2 sm:px-4 text-center relative z-10 w-full">
-        <div className="max-w-3xl w-full mx-auto bg-white dark:bg-green-900 p-4 sm:p-8 m-2
-          border-4 border-green-600 dark:border-white rounded-lg
-          shadow-[8px_8px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]
-          transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all overflow-x-auto">
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-8 px-2 sm:px-4 py-2
-            text-green-700 dark:text-white
-            border-b-4 border-green-600 dark:border-white">
-            YarnGPT
+    <section id="hero" aria-label="Hero section" className="flex flex-col bg-background rounded-3xl p-8 pt-16 md:pt-20 dark:bg-transparent dark:px-0 dark:pb-0">
+      <div className="flex flex-col gap-18 md:items-center">
+        <div className="flex flex-col gap-10 md:justify-center py-10">
+          <h1 className="text-brand-primary text-4xl md:text-7xl text-center font-extrabold font-jetbrains">
+            <span className="mx-auto block max-w-4xl">YarnGPT is the fastest growing Nigerian Text-to-Speech AI Model.</span>
           </h1>
-          <p className="text-base sm:text-xl md:text-2xl mb-4 sm:mb-8 px-2 sm:px-4 py-2
-            text-green-700 dark:text-white
-            border-2 border-green-600 dark:border-white rounded-lg
-            shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]">
-            Convert text to speech in Nigerian languages with AI-powered voices!
+          <p className="text-foreground mx-auto max-w-4xl text-center text-2xl leading-8 font-medium font-jetbrains md:text-3xl md:leading-10">
+            <span>#1 for Nigerian Languages. 19k+ YarnGPT users. 1.2 billion tokens converted per month.</span>
           </p>
-          <Link 
-            href="#" 
-            className="inline-block px-4 sm:px-8 py-2 sm:py-4 text-base sm:text-lg font-bold
-              bg-green-600 text-white dark:bg-white dark:text-green-900
-              border-4 border-green-600 dark:border-white rounded-lg
-              shadow-[4px_4px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]
-              hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none 
-              transform transition-all"
-          >
-            Get Started
-          </Link>
+        </div>
+        <div className="flex flex-col gap-10 md:items-center">
+          <div className="flex flex-col items-center gap-4 md:flex-row md:gap-10">
+            {/* Play Store Image Link */}
+            <div className="relative flex" tabIndex={-1}>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.yarngpt.yarngpt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pointer-events-auto flex cursor-pointer items-center justify-center transition-transform duration-100 active:scale-[0.98] hover:scale-[1.05]" // Adjusted for image-only link
+              >
+                <img src="/play.png" alt="Google Play" className="h-12 w-auto" /> 
+              </a>
+            </div>
+
+            {/* "Start Trial" Button - adapted */}
+            <div className="flex" tabIndex={0}>
+              <Link
+                href="https://yarngpt.ai/" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group/button user-select-none pointer-events-auto flex cursor-pointer items-center justify-center gap-3 bg-card font-bold whitespace-nowrap text-foreground ring-2 ring-border outline-none ring-inset hover:bg-card hover:text-foreground hover:no-underline hover:shadow-xl hover:shadow-black/20 hover:ring-brand-primary focus:bg-brand-primary/20 focus:text-brand-primary focus:ring-brand-primary focus:hover:bg-brand-primary/20 px-5 min-h-12 text-base font-jetbrains"
+              >
+                <UserPlus className="h-5 w-5" /> 
+                Start free trial
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
-

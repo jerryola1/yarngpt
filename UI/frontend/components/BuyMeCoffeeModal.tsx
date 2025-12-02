@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { X } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Coffee, ExternalLink, Heart } from 'lucide-react'
 
 export function BuyMeCoffeeModal({
   isOpen,
@@ -11,58 +11,63 @@ export function BuyMeCoffeeModal({
   isOpen: boolean
   onClose: () => void
 }) {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  useEffect(() => {
-    if (isOpen && isMobile) {
-      window.location.href = 'https://www.buymeacoffee.com/yarngpt'
-      onClose()
-    }
-  }, [isOpen, isMobile, onClose])
-
-  if (isMobile) return null
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] p-0 bg-white dark:bg-gray-900 border-4 border-green-600 dark:border-green-600">
-        <DialogTitle className="sr-only">Buy Me a Coffee</DialogTitle>
-        <DialogDescription className="sr-only">Support this project by buying me a coffee</DialogDescription>
-        
-        <div className="relative h-[600px] w-full overflow-hidden">
-          <button
-            onClick={onClose}
-            className="absolute top-2 right-2 p-2 z-50
-              text-green-700 dark:text-green-500
-              border-2 border-green-600 dark:border-green-600 rounded-lg
-              shadow-[2px_2px_0px_0px_rgba(22,163,74,0.5)] dark:shadow-[2px_2px_0px_0px_rgba(22,163,74,0.2)]
-              hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all
-              bg-white dark:bg-gray-900"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close dialog</span>
-          </button>
-          
-          <div className="w-full h-full overflow-hidden">
-            <iframe
-              src="https://www.buymeacoffee.com/yarngpt"
-              className="w-full h-full border-none"
-              title="Buy Me a Coffee"
-              loading="lazy"
-            />
-          </div>
+      {/* DialogContent already has some default styles, we'll override/add to them */}
+      <DialogContent className="sm:max-w-[450px] p-0 bg-transparent border-none shadow-none">
+        <div className="bg-card/95 backdrop-blur-xl border border-foreground/10 shadow-2xl overflow-hidden relative flex flex-col">
+            
+            {/* Header Area */}
+            <div className="p-6 border-b border-foreground/10 bg-background/50 flex flex-col items-center text-center gap-4">
+                <div className="h-16 w-16 bg-yellow-500/20 rounded-none flex items-center justify-center text-yellow-500 border border-yellow-500/50">
+                    <Coffee className="h-8 w-8" />
+                </div>
+                <div>
+                    <DialogTitle className="text-2xl font-bold font-jetbrains mb-2">Support YarnGPT</DialogTitle>
+                    <DialogDescription className="text-muted-foreground text-base">
+                        Help us keep the servers running and the voices flowing!
+                    </DialogDescription>
+                </div>
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 space-y-4 text-center">
+                <p className="text-foreground/80 leading-relaxed">
+                    Building and maintaining AI voice models for Nigerian languages takes a lot of resources. Your support helps us:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-2 text-left inline-block mx-auto">
+                    <li className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-red-500" /> Add more authentic voices
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-red-500" /> Improve translation accuracy
+                    </li>
+                    <li className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-red-500" /> Keep the service free for students
+                    </li>
+                </ul>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-6 bg-background/50 border-t border-foreground/10 flex flex-col gap-3">
+                <Button 
+                    className="w-full h-12 text-lg font-bold font-jetbrains bg-[#FFDD00] hover:bg-[#FFDD00]/90 text-black rounded-none shadow-lg"
+                    onClick={() => window.open('https://www.buymeacoffee.com/yarngpt', '_blank')}
+                >
+                    <Coffee className="mr-2 h-5 w-5" />
+                    Buy me a coffee
+                    <ExternalLink className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+                <Button 
+                    variant="ghost" 
+                    onClick={onClose}
+                    className="w-full rounded-none text-muted-foreground hover:text-foreground font-jetbrains"
+                >
+                    Maybe later
+                </Button>
+            </div>
         </div>
       </DialogContent>
     </Dialog>
   )
-} 
+}
