@@ -54,6 +54,21 @@ export function Footer() {
           </li>
         </ul>
       </div>
+      
+      {/* Developer Attribution */}
+      <div className="mt-8 pt-4 border-t border-border/50 w-full text-center text-sm text-muted-foreground font-jetbrains">
+        <p>
+          Website Developed by{" "}
+          <a
+            href="https://abayomiolagunju.net/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-primary hover:underline"
+          >
+            Jerry
+          </a>
+        </p>
+      </div>
     </footer>
   )
 }
